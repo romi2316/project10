@@ -32,10 +32,10 @@ describe("Cart Scenarios", () => {
     // Navigate to the product page
     cy.get('.text-header > button').click(); // Open "Our Products" section
     cy.wait(['@getProducts']);
-    cy.get(':nth-child(3) > .add-to-cart > [data-cy="product-link"]').click(); // Click consulter
+    cy.get(':nth-child(7) > .add-to-cart > [data-cy="product-link"]').click(); // Click "consulter btn"
     cy.wait(['@getProduct']);
 
-    // Step 2: Check initial stock
+    // Check initial stock
     cy.get('[data-cy="detail-product-stock"]').invoke('text').then((text) => {
       const match = text.match(/^(\d+)/); // Extract the number from stock text
       if (match) {
@@ -52,9 +52,9 @@ describe("Cart Scenarios", () => {
     cy.wait(['@getCart']);
 
     // Verify product in cart
-    cy.get('#cart-content').should('contain', 'Aurore boréale'); // Verify product name in cart
+    cy.get('#cart-content').should('contain', 'Mousse de rêve'); // Verify product name in cart
 
-    // Step 5: Return to the product page and check stock update
+    // Return to the product page and check stock update
     cy.get('[data-cy="nav-link-products"]').click(); // Go back to "Our Products"
     cy.wait(['@getProducts']);
     cy.get(':nth-child(8) > .add-to-cart > [data-cy="product-link"]').click(); // Revisit the same product
@@ -86,13 +86,12 @@ describe("Cart Scenarios", () => {
       // Visit product page
       cy.get('.text-header > button').click(); // Open "Our Products" section
       cy.wait(['@getProducts']);
-      cy.get(':nth-child(5) > .add-to-cart > [data-cy="product-link"]').click(); // Click consulter
+      cy.get(':nth-child(8) > .add-to-cart > [data-cy="product-link"]').click(); // Click consulter
       cy.wait(['@getProduct']);
       cy.get('[data-cy="detail-product-add"]')
         .scrollIntoView()
         .click(); // Click "Add to Cart"
-      cy.wait(['@getCart']);
-
+      cy.wait(2000)
       // Verify cart content via API
       cy.request({
         method: 'GET',
@@ -103,7 +102,6 @@ describe("Cart Scenarios", () => {
       }).then((response) => {
         expect(response.status).to.equal(200);
         const cart = response.body;
-        cy.log(JSON.stringify(cart, null, 2)); // Log the cart object
 
         // Assertions for cart and product details
         expect(cart.orderLines).to.be.an('array').and.to.have.length.greaterThan(0);
@@ -120,30 +118,30 @@ describe("Cart Scenarios", () => {
     cy.wait(['@getProduct'], { timeout: 10000 });
     cy.get(':nth-child(8) > .add-to-cart > [data-cy="product-link"]').click(); // Click to view product details
 
-    // Step 2: Enter a negative quantity
+    //Enter a negative quantity
     cy.get('[data-cy="detail-product-quantity"]').invoke('val', '-1').trigger('input');
 
-    // Step 3: click on "add to cart"
+    //Click on "add to cart"
     cy.get('[data-cy="detail-product-add"]').click(); // Click "Add to Cart"
 
-    // Step 4: Verify that it doesn't redirect to the cart
+    //Verify that it doesn't redirect to the cart
     cy.url().should('not.include', '/cart')
   });
 
 
-  // Test case 4: Verify that quantity greater than 20 is not allowed
-  it('should not allow adding a quantity greater than 20', () => {
+  // Test case 4: Verify that quantity greater than the available stock
+  it('should not allow adding a quantity greater than the available stock', () => {
     cy.get('.text-header > button').click(); // Open "Our Products" section
     cy.wait(['@getProduct']);
     cy.get(':nth-child(8) > .add-to-cart > [data-cy="product-link"]').click(); // Click to view product details
 
-    // Step 2: Enter an invalid quantity (greater than 20)
+    // Enter an invalid quantity
     cy.get('[data-cy="detail-product-quantity"]').clear().type('90');
 
-    // Step 3: click on "add to cart"
+    // Click on "add to cart"
     cy.get('[data-cy="detail-product-add"]').click(); // Click "Add to Cart"
     cy.wait(['@getCart']);
-    // Step 4: Verify that it doesn't redirect to the cart
+    // Verify that it doesn't redirect to the cart
     cy.url().should('not.include', '/cart');
   });
 });
